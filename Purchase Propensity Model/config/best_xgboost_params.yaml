@@ -1,0 +1,4 @@
+best_xgboost_params:
+  learning_rate: 0.007831209669114443
+  max_depth: 6
+  n_estimators: 200
