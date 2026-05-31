@@ -141,7 +141,7 @@ The following metrics are logged to MLflow on the validation set after final tra
 - Precision (`val_precision`)
 - Recall (`val_recall`)
 
-The registered model is versioned in Unity Catalog under workspace.default.propensity_model_xgboost. Batch inference validates that the target model version is in `READY` state before scoring begins, preventing silent failures from a degraded or mid-registration model.
+The registered model is versioned in Unity Catalog under `workspace.default.propensity_model_xgboost`. Batch inference validates that the target model version is in `READY` state before scoring begins, preventing silent failures from a degraded or mid-registration model.
 
 ## Batch Inference Output
 
