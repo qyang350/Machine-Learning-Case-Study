@@ -1,4 +1,4 @@
-# Purchase Propensity Model - XGBoost on Databricks
+# **Purchase Propensity Model - XGBoost on Databricks**
 
 An end-to-end MLOps pipeline that predicts the probability of a customer making a purchase within the next 30 days. Built on Databricks with Unity Catalog, MLflow, and Hyperopt, and designed to run as a **Databricks Asset Bundle (DAB)**.
 
