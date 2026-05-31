@@ -1,0 +1,5 @@
+best_model:
+  model_uri: models:/workspace.default.propensity_model_xgboost/5
+  name: workspace.default.propensity_model_xgboost
+  run_id: 124b99bcd56a416884849035fed4a6ad
+  version: 5

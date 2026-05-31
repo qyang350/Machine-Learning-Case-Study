@@ -32,7 +32,7 @@ def run_hyperparameter_tuning(config_path: str) -> None:
     schema = config["unity_catalog"]["schema_name"]
     target_label = config["ml_settings"]["target_column"].lower().replace(" ", "_")
 
-    gold_ml_matrix = f'{catalog}.{schema}.{config["tables"]["gold_ml_matrix"]}'
+    gold_ml_matrix = f'{catalog}.{schema}.{config["tables"]["processed_training_data"]}'
 
     logger.info(f"Loading training data for hyperparameter tuning from {gold_ml_matrix}")
     df_raw = spark.table(gold_ml_matrix)
@@ -48,31 +48,31 @@ def run_hyperparameter_tuning(config_path: str) -> None:
     stages = []
     if categorical_cols:
         indexed_cols = [c + "_indexed" for c in categorical_cols]
-        encoded_cols = [c + "_encoded" for c in categorical_cols]
+        # encoded_cols = [c + "_encoded" for c in categorical_cols]
         stages.append(StringIndexer(inputCols=categorical_cols, outputCols=indexed_cols, handleInvalid="keep"))
-        stages.append(OneHotEncoder(inputCols=indexed_cols, outputCols=encoded_cols))
-        assembler_inputs = encoded_cols + numerical_cols
+        # stages.append(OneHotEncoder(inputCols=indexed_cols, outputCols=encoded_cols))
+        # assembler_inputs = encoded_cols + numerical_cols
+        assembler_inputs = indexed_cols + numerical_cols
     else:
         assembler_inputs = numerical_cols
 
     stages.append(VectorAssembler(inputCols=assembler_inputs, outputCol="features", handleInvalid="skip"))
 
-    # Pre-transform the data to speed up the tuning search iterations
+    logger.info("Executing spark transformation stages...")
+    train_raw, val_raw = df_filtered.randomSplit([0.8, 0.2], seed=42)
     pre_pipeline = Pipeline(stages=stages)
-    processed_df = pre_pipeline.fit(df_filtered).transform(df_filtered)
+    pipeline_model = pre_pipeline.fit(train_raw)
+    train_processed = pipeline_model.transform(train_raw)
+    val_processed = pipeline_model.transform(val_raw)
 
-    # Cache processed dataset partitions in cluster memory for high-throughput cycling
-    train, val = processed_df.randomSplit([0.8, 0.2], seed=42)
-    # train.cache()
-    # val.cache() 
-    train_df = train.toPandas()
-    val_df = val.toPandas()
+    train_df = train_processed.toPandas()
+    val_df = val_processed.toPandas()
 
-    X_train = np.array(train_df["features"].to_list())
+    X_train = np.array(train_df["features"].apply(lambda x: x.toArray()).tolist())
     y_train = np.array(train_df[target_label])
-    X_val = np.array(val_df["features"].to_list())
+    X_val = np.array(val_df["features"].apply(lambda x: x.toArray()).tolist())
     y_val = np.array(val_df[target_label])
-
+ 
     # Define searching space
     search_space = {
         "max_depth": hp.choice("max_depth", [4,5,6,8]),
@@ -85,6 +85,7 @@ def run_hyperparameter_tuning(config_path: str) -> None:
         with mlflow.start_run(nested=True): # launch a child run inside an already active parent run
             xgb = XGBClassifier(
                 eval_metric="auc",
+                enable_categorical=True,
                 **params
             )
 

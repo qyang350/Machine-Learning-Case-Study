@@ -90,7 +90,7 @@ def run_feature_pipeline(config_path: str) -> None:
     target_label = config["ml_settings"]["target_column"]
 
     source_table = f"{catalog}.{schema}.{config["tables"]["training_data"]}"
-    gold_table = f"{catalog}.{schema}.{config["tables"]["gold_ml_matrix"]}"
+    gold_table = f"{catalog}.{schema}.{config["tables"]["processed_training_data"]}"
 
     logger.info(f"Loading master aggregated dataset from Unity Catalog: {source_table}")
 

@@ -5,7 +5,8 @@ unity_catalog:
 tables:
   training_data: "synthetic_propensity_model_training_data"
   scoring_data: "synthetic_propensity_model_scoring_data"
-  gold_ml_matrix: "final_xgboost_input_matrix"
+  processed_training_data: "final_xgboost_input_matrix_training"
+  processed_scoring_data: "final_xgboost_input_matrix_scoring"
 
 ml_settings:
   target_column: "Purchased Next 30D"
